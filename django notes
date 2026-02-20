@@ -1,0 +1,415 @@
+//django notes
+https://docs.google.com/document/d/1FPQIfOaena6PaycKysSfB8FTA0wRqsbvtIE2iQB_mWQ/edit?tab=t.0
+
+
+Day 1: What is Django & How It Works 
+
+Why do we even need Django?
+Problem with only HTML/CSS/JS
+If I ask:
+Save user data 
+
+
+Login system 
+
+
+Store notes 
+
+
+Admin panel 
+
+
+Because:
+Browser cannot talk directly to database
+So we need:
+Browser → Backend → Database
+
+Django can:
+Receive request from browser
+Decide what logic to run
+Talk to database
+Send response back (HTML / JSON)
+
+
+
+
+
+Django
+Frontend
+Backend framework
+UI
+Runs on server
+Runs in browser
+Uses Python
+Uses HTML/CSS/JS
+
+
+
+
+Django generates HTML, but it is still backend.
+
+Django Architecture (VERY IMPORTANT)
+Django follows MVT
+Let’s rename it for understanding:
+Model   → Data (Database)
+View    → Brain (Logic)
+Template→ Design (HTML)
+
+
+
+
+
+
+
+
+Real-life analogy:
+Amazon order
+Part
+Django
+Real life
+Data
+Model
+Warehouse
+Logic
+View
+Manager
+UI
+Template
+Delivery box
+
+
+Django Project vs Django App (CONFUSION POINT)
+Django Project
+Whole website
+
+
+Settings, configs
+
+
+Django App
+One feature/module
+
+
+Example:
+Instagram (Project)
+│
+├── accounts (App)
+├── posts (App)
+├── chat (App)
+
+One project = many apps
+
+
+Starting with django:
+Create virtual environment, activate it : python3 -m venv virtualenvname / 
+virtualenv name  
+Activate : for windows : name\Scripts\activate 
+For mac: source name/bin/activate
+pip3 install django
+Run this command and check if it is installed : django-admin --version
+django-admin startproject project_name 
+Use this to run the django file : python manage.py runserver
+
+Folder structure you are seeing:
+myproject/
+│
+├── manage.py
+└── myproject/
+
+Outer folder = project container
+Inner folder = Django configuration
+
+Django separates:
+Management commands (outer)
+Project configuration (inner)
+So:
+manage.py stays outside
+Settings stay inside
+manage.py
+Purpose:
+This file is used to run Django commands.
+Examples:
+python manage.py runserver
+python manage.py startapp appname
+
+Analogy:
+Like npm for Django.
+
+What is Admin Panel in Django?
+Django Admin Panel is a ready-made dashboard to manage website data without writing extra code.
+What can Admin Panel do?
+From admin panel, you can:
+Add data
+Edit data
+Delete data
+Manage users
+Control permissions
+
+
+All via browser UI, not code.
+Admin panel is NOT for normal users
+It is ONLY for the website owner / developer
+
+Understanding urls.py (VERY IMPORTANT FILE)
+from django.contrib import admin
+Meaning:
+Django provides an admin panel
+This line imports it
+If removed → admin won’t work.
+
+from django.urls import path
+Meaning:
+path() is used to define URLs
+Without this, Django cannot map URLs
+urlpatterns = []
+Meaning:
+A list of URL rules
+Django checks this list top to bottom
+Say:
+“If URL is not here, Django doesn’t know it.”
+
+path('admin/', admin.site.urls)
+Meaning:
+If URL starts with admin/
+Send request to Django admin
+User opens:
+http://127.0.0.1:8000/admin/
+Django:
+Matches admin/
+
+
+Sends request to admin.site.urls
+
+
+Admin panel opens
+
+
+
+
+Adding Our Own Page
+STEP 1: Import HttpResponse
+Add:
+from django.http import HttpResponse
+Explanation:
+HTTP = how web works
+
+
+Response = what server sends back
+
+
+This class helps Django send text to browser
+
+
+STEP 2: Create a View Function
+Add:
+def home(request):
+    return HttpResponse("Hello Django")
+Django automatically passes request
+STEP 3: Connect URL to Function
+Add:
+path('', home)
+
+Meaning:
+'' → root URL
+
+
+home → function to call
+
+
+Final urls.py (complete):
+
+from django.contrib import admin
+from django.urls import path
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("Hello Django")
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', home),
+]
+
+Also try:
+urls.py
+from django.contrib import admin
+from django.urls import path
+from django.http import HttpResponse
+
+
+def home(request):
+   return HttpResponse("hello world")
+def second_page(request):
+   return HttpResponse("<h1>Second Page</h1>")
+def third(request):
+   return HttpResponse("third")
+def second2(request):
+   return HttpResponse("second 2")
+urlpatterns = [
+   path("admin/", admin.site.urls),
+   path("",home),
+   path("second/",second_page),
+   path("third/",third),
+   path("second/second_next",second2)
+]
+
+
+
+
+Why views.py Exists & What a Django App Is
+“If our website has 50 pages…
+will we write 50 functions inside urls.py?”
+This is why Django separates responsibilities.
+urls.py decides WHERE to go
+views.py decides WHAT to do
+
+What is a Django App? 
+Simple definition :
+A Django app is a module that handles ONE feature of a website.
+Examples:
+blog
+
+
+notes
+
+
+accounts
+
+
+courses
+
+
+One project → many apps.
+Create Your First Django App
+Run this command from the folder where manage.py exists:
+python manage.py startapp main
+
+Explain:
+startapp → create feature
+
+
+main → name of feature
+
+
+
+Move logic OUT of urls.py
+views.py -> 
+from django.shortcuts import render
+from django.http import HttpResponse
+
+
+# Create your views here.
+def home(request):
+   return HttpResponse("hey")
+def second_page(request):
+   return HttpResponse("second page")
+
+
+urls.py->
+from django.contrib import admin
+from django.urls import path
+from main import views
+
+
+urlpatterns = [
+   path("admin/", admin.site.urls),
+   path("",views.home),
+   path("second/",views.second_page)
+]
+FINAL MENTAL MODEL 
+Browser
+ ↓
+urls.py   → decides route
+ ↓
+views.py → runs logic
+ ↓
+HttpResponse
+ ↓
+Browser
+
+
+
+
+
+
+
+
+
+
+When using apps, Django expects templates inside the app folder.
+When we create an app using:
+python manage.py startapp main
+Django does NOT automatically use it.
+
+
+In settings.py:
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+
+    'main',
+]
+
+
+We must register it.
+
+
+
+
+
+
+Correct folder structure:
+main/
+├── views.py
+├── templates/
+│   └── home.html
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Home</title>
+</head>
+<body>
+   <h1>Welcome to Django</h1>
+   <p>This page is coming from a template.</p>
+</body>
+</html>
+views.py
+from django.shortcuts import render
+from django.http import HttpResponse
+
+
+# Create your views here.
+def home(request):
+   return render(request,"home.html")
+def second_page(request):
+   return HttpResponse("second page")
+Browser
+ ↓
+urls.py  → decides route
+ ↓
+views.py → calls render()
+ ↓
+templates/home.html
+ ↓
+Browser shows HTML
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
