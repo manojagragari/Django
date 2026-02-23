@@ -9,6 +9,10 @@ from .views.expense_analytics import DailyExpenseAnalyticsView
 from .views.expense_analytics import WeeklyExpenseAnalyticsView
 from .views.data_science_analytics import *
 from .views import data_science_analytics as ds
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 urlpatterns = [
     path('dashboard/', dashboard_summary),
     path('analytics/monthly-sales/', monthly_sales_chart),
@@ -44,6 +48,9 @@ urlpatterns = [
     path('api/ds/sales-distribution/', ds.sales_distribution),
     path('api/ds/correlation/', ds.sales_correlation),
     path('api/ds/forecast/', ds.revenue_forecast),
+
+    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
 
 
