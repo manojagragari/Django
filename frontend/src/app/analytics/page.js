@@ -75,13 +75,13 @@ export default function AnalyticsPage() {
   }, [])
 
   return (
-    <div className="p-6 bg-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-8">Business Analytics Dashboard</h1>
+    <div className="p-6 min-h-screen bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#1e293b] text-white">
+      <h1 className="text-4xl font-bold mb-10 text-center">Business Analytics Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Monthly Sales */}
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Monthly Sales</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+          <h2 className="text-4xl font-bold mb-10 text-center">Monthly Sales</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={monthlyData || []}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -94,8 +94,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Weekly Sales */}
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Weekly Sales (Last 4 Weeks)</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+          <h2 className="text-4xl font-bold mb-10 text-center">Weekly Sales (Last 4 Weeks)</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={weeklyData || []}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -108,8 +108,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Daily Sales */}
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Daily Sales (Last 7 Days)</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+          <h2 className="text-4xl font-bold mb-10 text-center">Daily Sales (Last 7 Days)</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={dailyData || []}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -122,8 +122,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Payment Breakdown */}
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Payment Breakdown</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+          <h2 className="text-4xl font-bold mb-10 text-center">Payment Breakdown</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -141,13 +141,10 @@ export default function AnalyticsPage() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <img src="http://127.0.0.1:8000/api/ds/weekly-sales/" />
-        <img src="http://127.0.0.1:8000/api/ds/sales-distribution/" />
-        <img src="http://127.0.0.1:8000/api/ds/correlation/" />
-        <img src="http://127.0.0.1:8000/api/ds/forecast/" />
+        
 
-        <div className="bg-white shadow rounded p-4">
-        <h2 className="text-xl font-semibold mb-4">Weekly Expense Analysis (Last 4 Weeks)</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+        <h2 className="text-4xl font-bold mb-10 text-center">Weekly Expense Analysis (Last 4 Weeks)</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={weeklyExpenseData || []}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -160,8 +157,8 @@ export default function AnalyticsPage() {
       </div>
 
 
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Expense Analysis (Last 7 Days)</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+          <h2 className="text-4xl font-bold mb-10 text-center">Expense Analysis (Last 7 Days)</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={expenseData || []}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -175,8 +172,8 @@ export default function AnalyticsPage() {
 
 
         {/* Top Products */}
-        <div className="bg-white shadow rounded p-4">
-          <h2 className="text-xl font-semibold mb-4">Top Selling Products</h2>
+        <div className="bg-[#1e293b] border border-gray-700 rounded-xl p-4 shadow-xl">
+          <h2 className="text-4xl font-bold mb-10 text-center">Top Selling Products</h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={topProducts || []}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -187,6 +184,10 @@ export default function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        <img src="http://127.0.0.1:8000/api/ds/weekly-sales/" />
+        <img src="http://127.0.0.1:8000/api/ds/correlation/" />
+        <img src="http://127.0.0.1:8000/api/ds/forecast/" />
+        <img src="http://127.0.0.1:8000/api/ds/sales-distribution/" />
       </div>
     </div>
   )

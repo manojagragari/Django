@@ -11,11 +11,15 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000"
 
 export default function ProductsPage() {
-  const router = useRouter();
+  const router = useRouter()
+  const [checking, setChecking] = useState(true);
+  
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [dashboard, setDashboard] = useState(null)
   const [error, setError] = useState("")
+
+  const [activeTab, setActiveTab] = useState("inventory")
 
   const [search, setSearch] = useState("")
   const [filterCategory, setFilterCategory] = useState("")
@@ -52,13 +56,21 @@ const [lastInvoice, setLastInvoice] = useState(null)
 
 const [sales, setSales] = useState([])
 
-useEffect(() => {
-  const token = localStorage.getItem("access_token");
+const [expenses, setExpenses] = useState([]);
 
-  if (!token) {
-    router.push("/login");
+
+const fetchExpenses = async () => {
+  try {
+    const res = await authFetch(`${API_BASE}/api/expenses/`, {}, router);
+    if (!res || !res.ok) throw new Error("Failed to fetch expenses");
+    const data = await res.json();
+    setExpenses(data);
+  } catch (err) {
+    setError(err.message);
   }
-}, []);
+};
+
+
 
  const startEdit = (product) => {
   setEditingId(product.id)
@@ -134,6 +146,7 @@ const selectedProduct = products.find(
     fetchProducts()
     fetchCategories()
     fetchSales() 
+    fetchExpenses(); 
   }, [router])
 
   const handleExpenseSubmit = async (e) => {
@@ -356,7 +369,6 @@ if (Number(saleQuantity) > selectedProduct.stock) {
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6">
       <div className="flex justify-between items-center mb-4">
-        <DarkToggle />
          <Link
           href="/analytics"
           className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
@@ -605,12 +617,51 @@ if (Number(saleQuantity) > selectedProduct.stock) {
   </button>
 </form>
 
-  
+  {/* ---------------- SECTION TABS ---------------- */}
+<div className="border border-gray-200 dark:border-gray-700 p-5 rounded-xl shadow-md bg-white dark:bg-gray-800 grid grid-col-1 sm:grid-row-2 gap-3 transition-colors">
+  <h1 className="bold-3xl">Business Records</h1>
+  <div className="border border-gray-200 dark:border-gray-700 p-5 rounded-xl shadow-md bg-white dark:bg-gray-800 grid grid-cols-1 sm:grid-cols-2 gap-3 transition-colors">
+  <button
+    onClick={() => setActiveTab("inventory")}
+    className={`px-4 py-2 rounded-lg transition ${
+      activeTab === "inventory"
+        ? "bg-blue-600 text-white"
+        : "bg-gray-200 dark:bg-gray-700"
+    }`}
+  >
+    Inventory
+  </button>
+
+  <button
+    onClick={() => setActiveTab("sales")}
+    className={`px-4 py-2 rounded-lg transition ${
+      activeTab === "sales"
+        ? "bg-blue-600 text-white"
+        : "bg-gray-200 dark:bg-gray-700"
+    }`}
+  >
+    Sales History
+  </button>
+
+  <button
+    onClick={() => setActiveTab("expenses")}
+    className={`px-4 py-2 rounded-lg transition ${
+      activeTab === "expenses"
+        ? "bg-blue-600 text-white"
+        : "bg-gray-200 dark:bg-gray-700"
+    }`}
+  >
+    Expenses History
+  </button>
+  </div>
+</div>
+
 
 
 </div>
 
 
+        {activeTab === "inventory" && (
         <div className="overflow-x-auto">
         <h2 className="text-2xl font-bold mb-4">Inventory data</h2>
     <table className="min-w-full border border-gray-200 dark:border-gray-700 text-center bg-white dark:bg-gray-800 transition-colors">
@@ -763,8 +814,9 @@ if (Number(saleQuantity) > selectedProduct.stock) {
   </tbody>
 </table>
 </div>
+)}
 {/* ---------------- SALES HISTORY ---------------- */}
-
+{activeTab === "sales" && (
 <div className="mt-10">
   <h2 className="text-2xl font-bold mb-4">Sales History</h2>
 
@@ -802,8 +854,42 @@ if (Number(saleQuantity) > selectedProduct.stock) {
         ))}
       </tbody>
     </table>
+  </div> 
+</div>
+)}
+{activeTab === "expenses" && (
+<div className="mt-10">
+  <h2 className="text-2xl font-bold mb-4">Expenses History</h2>
+
+  <div className="overflow-x-auto">
+    <table className="min-w-full border border-gray-200 dark:border-gray-700 text-center bg-white dark:bg-gray-800 transition-colors">
+      <thead>
+        <tr>
+          <th className="border border-gray-200 dark:border-gray-700 p-2">Title</th>
+          <th className="border border-gray-200 dark:border-gray-700 p-2">Category</th>
+          <th className="border border-gray-200 dark:border-gray-700 p-2">Amount</th>
+          <th className="border border-gray-200 dark:border-gray-700 p-2">Date</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {expenses.map((expense) => (
+          <tr key={expense.id}>
+            <td className="border border-gray-200 dark:border-gray-700 p-2">{expense.title}</td>
+            <td className="border border-gray-200 dark:border-gray-700 p-2">{expense.category_name || expense.category}</td>
+            <td className="border border-gray-200 dark:border-gray-700 p-2">₹ {expense.amount}</td>
+            <td className="border border-gray-200 dark:border-gray-700 p-2">
+              {expense.expense_date
+                ? new Date(expense.expense_date).toLocaleString("en-IN")
+                : "-"}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 </div>
+)}
 
 
     </div>
