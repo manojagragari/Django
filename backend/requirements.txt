@@ -8,7 +8,7 @@ djangorestframework-simplejwt
 dj-database-url
 gunicorn
 python-dotenv
-scikit-learn==1.4.2
+scikit-learn
 numpy
 scipy
 joblib
