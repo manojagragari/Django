@@ -22,7 +22,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 # Automatically switch DEBUG based on environment
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-DEBUG = False
+# DEBUG = False
 
 
 ALLOWED_HOSTS = [
