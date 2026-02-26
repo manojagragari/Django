@@ -7,6 +7,9 @@ from datetime import timedelta
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # BASE DIRECTORY
@@ -17,10 +20,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
 # Automatically switch DEBUG based on environment
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+DEBUG = True
 
 # DEBUG = False
 
@@ -93,20 +96,20 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # If DATABASE_URL exists (Render), use PostgreSQL
 # Otherwise fallback to SQLite (local development)
 
-if os.environ.get("DATABASE_URL"):
-    DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-            ssl_require=True
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 # =========================
 # PASSWORD VALIDATION
