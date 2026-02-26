@@ -184,10 +184,10 @@ export default function AnalyticsPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <img src="http://127.0.0.1:8000/api/ds/weekly-sales/" />
+        {/* <img src="http://127.0.0.1:8000/api/ds/weekly-sales/" />
         <img src="http://127.0.0.1:8000/api/ds/correlation/" />
         <img src="http://127.0.0.1:8000/api/ds/forecast/" />
-        <img src="http://127.0.0.1:8000/api/ds/sales-distribution/" />
+        <img src="http://127.0.0.1:8000/api/ds/sales-distribution/" /> */}
       </div>
     </div>
   )

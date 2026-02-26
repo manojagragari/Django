@@ -27,8 +27,7 @@ DEBUG = os.getenv("DEBUG", "True") == "True"
 
 # DEBUG = False
 
-
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 
 # APPLICATIONS
@@ -164,7 +163,7 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOWED_ORIGINS = [
-        "https://your-frontend-url.com",
+        "https://django-394y.onrender.com",
     ]
 
 # =========================
