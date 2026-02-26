@@ -1,6 +1,6 @@
 django
-seaborn
-matplotlib
+# seaborn
+# matplotlib
 psycopg2-binary
 django-cors-headers
 djangorestframework
@@ -8,7 +8,7 @@ djangorestframework-simplejwt
 dj-database-url
 gunicorn
 python-dotenv
-scikit-learn
-numpy
-scipy
-joblib
+# scikit-learn
+# numpy
+# scipy
+# joblib

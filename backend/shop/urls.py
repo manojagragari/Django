@@ -39,10 +39,10 @@ urlpatterns = [
     # Category APIs
     path('categories/', CategoryListCreateView.as_view(), name='categories'),
 
-    path("ds/weekly-sales/", weekly_sales_ds),
-    path("ds/sales-distribution/", sales_distribution),
-    path("ds/correlation/", sales_correlation),
-    path("ds/forecast/", revenue_forecast),
+    # path("ds/weekly-sales/", weekly_sales_ds),
+    # path("ds/sales-distribution/", sales_distribution),
+    # path("ds/correlation/", sales_correlation),
+    # path("ds/forecast/", revenue_forecast),
 
     # Authentication APIs
     path('groups/', list_groups),
