@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
 # Automatically switch DEBUG based on environment
-DEBUG = True
+DEBUG = False
 
 # DEBUG = False
 
@@ -144,7 +144,7 @@ USE_TZ = True
 # =========================
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # =========================
 # MEDIA FILES (If you use images)
