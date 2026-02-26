@@ -8,14 +8,14 @@ from pathlib import Path
 import os
 import dj_database_url
 
-# =========================
+
 # BASE DIRECTORY
-# =========================
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# =========================
+
 # SECURITY
-# =========================
+
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 
@@ -24,15 +24,16 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 DEBUG = False
 
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "django-394y.onrender.com",
 ]
 
-# =========================
+
 # APPLICATIONS
-# =========================
+
 
 INSTALLED_APPS = [
     # Default Django apps
@@ -48,12 +49,11 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # Your apps
-    'shop',  # keep your app
+    'shop',  
 ]
 
-# =========================
 # MIDDLEWARE
-# =========================
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
