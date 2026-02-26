@@ -23,16 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
 # Automatically switch DEBUG based on environment
-DEBUG = False
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 # DEBUG = False
 
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "django-394y.onrender.com",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 
 # APPLICATIONS
@@ -96,20 +92,21 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # If DATABASE_URL exists (Render), use PostgreSQL
 # Otherwise fallback to SQLite (local development)
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-        'CONN_MAX_AGE': 600,
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+if os.getenv("RENDER"):  # Production (Render)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
-}
+else:  # Local Development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # =========================
 # PASSWORD VALIDATION
@@ -163,7 +160,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS CONFIG
 # =========================
 
-CORS_ALLOW_ALL_ORIGINS = True
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "https://your-frontend-url.com",
+    ]
 
 # =========================
 # REST FRAMEWORK
