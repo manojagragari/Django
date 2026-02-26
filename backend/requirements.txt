@@ -8,3 +8,4 @@ djangorestframework-simplejwt
 dj-database-url
 gunicorn
 python-dotenv
+scikit-learn
