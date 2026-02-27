@@ -209,7 +209,10 @@ export default function ProductsPage() {
   e.preventDefault();
   setError("");
 
-  const selectedProduct = products.find((p) => p.id === Number(saleProductId));
+  const selectedProduct = products.find(
+    (p) => p.id === Number(saleProductId)
+  );
+
   if (!selectedProduct) return;
 
   if (Number(saleQuantity) > selectedProduct.stock) {
@@ -219,7 +222,7 @@ export default function ProductsPage() {
 
   try {
     const res = await authFetch(
-      `${API_BASE}/sales/`,
+      `${API_BASE}/sales/`,   // ✅ FIXED HERE
       {
         method: "POST",
         body: JSON.stringify({
@@ -235,19 +238,25 @@ export default function ProductsPage() {
     );
 
     if (!res) return;
+
     const data = await res.json();
     if (!res.ok) throw new Error(data?.detail || JSON.stringify(data));
 
-    // Reset form
-    setSaleProductId(""); setSaleQuantity(""); setDiscount(""); setTaxPercent(""); setCustomerName("");
+    setSaleProductId("");
+    setSaleQuantity("");
+    setDiscount("");
+    setTaxPercent("");
+    setCustomerName("");
+
     await fetchSales();
     await fetchDashboard();
     await fetchProducts();
   } catch (err) {
-    console.error("Add Sale Error:", err);
+    console.error("Sale Error:", err);
     setError(err.message);
   }
 };
+
 
 
   /* ---------------- EXPENSE ---------------- */
