@@ -116,31 +116,39 @@ export default function ProductsPage() {
 
     /* ---------------- PRODUCT CRUD ---------------- */
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await authFetch(
-        `${API_BASE}/products/`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name,
-            category: Number(categoryId),
-            purchase_price: Number(purchasePrice),
-            selling_price: Number(sellingPrice),
-            stock: Number(stock),
-          }),
-        },
-        router
-      );
-      if (!res || !res.ok) throw new Error("Failed to add product");
+  e.preventDefault();
+  setError("");
 
-      // Reset form
-      setName(""); setCategoryId(""); setPurchasePrice(""); setSellingPrice(""); setStock("");
-      await fetchProducts();
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  try {
+    const res = await authFetch(
+      `${API_BASE}/products/`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          category: Number(categoryId),
+          purchase_price: Number(purchasePrice),
+          selling_price: Number(sellingPrice),
+          stock: Number(stock),
+        }),
+      },
+      router
+    );
+
+    if (!res) return; // redirected to login
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data?.detail || JSON.stringify(data));
+
+    // Reset form
+    setName(""); setCategoryId(""); setPurchasePrice(""); setSellingPrice(""); setStock("");
+    await fetchProducts();
+  } catch (err) {
+    console.error("Add Product Error:", err);
+    setError(err.message);
+  }
+};
+
 
   const startEdit = (product) => {
     setEditingId(product.id);
@@ -198,41 +206,49 @@ export default function ProductsPage() {
 
   /* ---------------- SALE ---------------- */
   const handleSaleSubmit = async (e) => {
-    e.preventDefault();
-    const selectedProduct = products.find((p) => p.id === Number(saleProductId));
-    if (!selectedProduct) return;
+  e.preventDefault();
+  setError("");
 
-    if (Number(saleQuantity) > selectedProduct.stock) {
-      alert(`Only ${selectedProduct.stock} items in stock`);
-      return;
-    }
+  const selectedProduct = products.find((p) => p.id === Number(saleProductId));
+  if (!selectedProduct) return;
 
-    try {
-      const res = await authFetch(
-        `${API_BASE}/sales/`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            product: Number(saleProductId),
-            quantity: Number(saleQuantity),
-            discount: Number(discount || 0),
-            tax_percent: Number(taxPercent || 0),
-            payment_method: paymentMethod,
-            customer_name: customerName,
-          }),
-        },
-        router
-      );
-      if (!res || !res.ok) throw new Error("Failed to add sale");
+  if (Number(saleQuantity) > selectedProduct.stock) {
+    setError(`Only ${selectedProduct.stock} items in stock`);
+    return;
+  }
 
-      setSaleProductId(""); setSaleQuantity(""); setDiscount(""); setTaxPercent(""); setCustomerName("");
-      await fetchSales();
-      await fetchDashboard();
-      await fetchProducts(); // update stock automatically
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  try {
+    const res = await authFetch(
+      `${API_BASE}/sales/`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          product: Number(saleProductId),
+          quantity: Number(saleQuantity),
+          discount: Number(discount || 0),
+          tax_percent: Number(taxPercent || 0),
+          payment_method: paymentMethod,
+          customer_name: customerName,
+        }),
+      },
+      router
+    );
+
+    if (!res) return;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.detail || JSON.stringify(data));
+
+    // Reset form
+    setSaleProductId(""); setSaleQuantity(""); setDiscount(""); setTaxPercent(""); setCustomerName("");
+    await fetchSales();
+    await fetchDashboard();
+    await fetchProducts();
+  } catch (err) {
+    console.error("Add Sale Error:", err);
+    setError(err.message);
+  }
+};
+
 
   /* ---------------- EXPENSE ---------------- */
   const handleExpenseSubmit = async (e) => {
