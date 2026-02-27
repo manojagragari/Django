@@ -10,12 +10,14 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Check if already logged in
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
       setIsLoggedIn(true);
+      router.push("/dashboard");
     }
-  }, []);
+  }, [router]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,32 +35,22 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Store JWT tokens
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
         setIsLoggedIn(true);
         router.push("/dashboard");
       } else {
-        setError("Invalid username or password");
+        // Handle errors returned by backend
+        setError(data.detail || "Invalid username or password");
       }
     } catch (err) {
       setError("Server error. Is backend running?");
     }
   };
 
-  const goToDashboard = () => {
-    if (isLoggedIn) {
-      router.push("/dashboard");
-    } else {
-      alert("Please login first");
-    }
-  };
-
-  const goToAnalytics = () => {
-    if (isLoggedIn) {
-      router.push("/analytics");
-    } else {
-      alert("Please login first");
-    }
+  const goToRegister = () => {
+    router.push("/register");
   };
 
   return (
@@ -113,7 +105,7 @@ export default function LoginPage() {
           <p className="text-sm text-center mt-6 text-gray-400">
             Don’t have an account?{" "}
             <span
-              onClick={() => router.push("/register")}
+              onClick={goToRegister}
               className="text-blue-400 cursor-pointer hover:underline"
             >
               Register
