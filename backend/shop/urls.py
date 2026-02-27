@@ -10,14 +10,14 @@ from .views.expense_analytics import WeeklyExpenseAnalyticsView
 from .views.data_science_analytics import *
 from .views import data_science_analytics as ds
 from .views.auth_views import register_user, list_groups
-from .views.home_views import home
+# from .views.home_views import home
 from .views.home_views import dashboard_home
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 urlpatterns = [
-    path('', home, name='home'),
+    # path('', home, name='home'),
     path('', dashboard_home, name='dashboard-home'),
     path('dashboard/', dashboard_summary),
     path('analytics/payment-breakdown/', payment_breakdown),
