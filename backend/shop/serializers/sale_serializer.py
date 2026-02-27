@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db import transaction
 from ..models import Sale
 from shop.models import Product
 
@@ -6,37 +7,43 @@ from shop.models import Product
 class SaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
-        fields = '__all__'
+        fields = "__all__"
 
     def validate(self, data):
-        product = data["product"]
-        quantity = data["quantity"]
+        quantity = data.get("quantity")
+
+        if quantity is None:
+            raise serializers.ValidationError("Quantity is required")
 
         if quantity <= 0:
             raise serializers.ValidationError("Quantity must be positive")
 
         return data
 
-
     def create(self, validated_data):
-        product = validated_data["product"]
-        quantity = validated_data["quantity"]
+        with transaction.atomic():  # ✅ REQUIRED for select_for_update
 
-        #  Lock product row (prevents race condition)
-        product = Product.objects.select_for_update().get(id=product.id)
+            product = validated_data["product"]
+            quantity = validated_data["quantity"]
 
-        #  Check stock
-        if product.stock < quantity:
-            raise serializers.ValidationError(
-                f"Not enough stock. Available: {product.stock}"
+            # Lock row properly (PostgreSQL safe)
+            product = (
+                Product.objects
+                .select_for_update()
+                .get(id=product.id)
             )
 
-        #  Reduce stock
-        product.stock -= quantity
-        product.save()
+            # Check stock safely inside transaction
+            if product.stock < quantity:
+                raise serializers.ValidationError(
+                    f"Not enough stock. Available: {product.stock}"
+                )
 
-        #  Create sale
-        sale = Sale.objects.create(**validated_data)
+            # Reduce stock
+            product.stock -= quantity
+            product.save()
 
-        return sale
+            # Create sale
+            sale = Sale.objects.create(**validated_data)
 
+            return sale
