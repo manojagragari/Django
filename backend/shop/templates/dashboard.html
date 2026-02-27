@@ -1,0 +1,22 @@
+<!-- shop/templates/dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ElectroShop Dashboard</title>
+</head>
+<body>
+    <h1>ElectroShop Dashboard</h1>
+    <ul>
+        <li><a href="/shop/api/dashboard-summary/">Dashboard Summary</a></li>
+        <li><a href="/shop/api/payment-breakdown/">Payment Breakdown</a></li>
+        <li><a href="/shop/api/top-products/">Top Products</a></li>
+        <li><a href="/shop/api/products/">Products</a></li>
+        <li><a href="/shop/api/expenses/">Expenses</a></li>
+        <li><a href="/shop/api/sales/">Sales</a></li>
+        <li><a href="/admin/">Admin Panel</a></li>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
+        <script src="{% static 'js/main.js' %}"></script>
+    </ul>
+</body>
+</html>

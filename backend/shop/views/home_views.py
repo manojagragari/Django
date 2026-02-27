@@ -1,5 +1,4 @@
-# shop/views/home_views.py
-from django.http import HttpResponse
+from django.shortcuts import render
 
-def home(request):
-    return HttpResponse("<h1>Welcome to ElectroShop Dashboard!</h1>")
+def dashboard_home(request):
+    return render(request, 'dashboard.html')
