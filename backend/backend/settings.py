@@ -146,6 +146,8 @@ else:
     # Production: add your frontend URL
     CORS_ALLOWED_ORIGINS = [
         "https://django-394y.onrender.com",
+        "http://localhost:3000",
+        "https://django-1-ucq2.onrender.com"
     ]
 
 # =========================
