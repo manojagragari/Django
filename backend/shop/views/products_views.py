@@ -10,10 +10,6 @@ class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    def get_permissions(self):
-        if self.request.method == "POST":
-            return [IsAuthenticated(), IsAdminUserGroup()]
-        return [IsAuthenticated()]
 
 
 # RETRIEVE + UPDATE + DELETE
