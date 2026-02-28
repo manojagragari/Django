@@ -320,15 +320,23 @@ export default function ProductsPage() {
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <Link
-            href="/analytics"
-            className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          >
-            Go to Analysis
-          </Link>
-        </div>
-        <h1 className="text-3xl font-bold">Product Management</h1>
+        <div className="flex gap-3">
+    <Link
+      href="/analytics"
+      className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+    >
+      Go to Analysis
+    </Link>
+
+    <button
+      onClick={handleLogout}
+      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition"
+    >
+      Logout
+    </button>
+  </div>
+
+  <h1 className="text-3xl font-bold">Product Management</h1>
 
         <div>
           <button
