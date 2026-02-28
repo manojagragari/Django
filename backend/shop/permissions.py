@@ -1,35 +1,9 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import BasePermission
 
-
-class ProductPermission(BasePermission):
-
+class IsAdminUserGroup(BasePermission):
     def has_permission(self, request, view):
-        role = getattr(request.user, "role", None)
-
-        if role == "admin":
-            return True
-
-        if role == "manager":
-            return request.method in SAFE_METHODS
-
-        if role == "staff":
+        if not request.user.is_authenticated:
             return False
 
-        return False
-
-
-class SalePermission(BasePermission):
-
-    def has_permission(self, request, view):
-        role = getattr(request.user, "role", None)
-
-        if role == "admin":
-            return True
-
-        if role == "manager":
-            return request.method in SAFE_METHODS
-
-        if role == "staff":
-            return request.method == "POST"
-
-        return False
+        return request.user.groups.filter(name="Admin").exists()
+    
