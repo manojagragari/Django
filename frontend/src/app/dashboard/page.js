@@ -392,6 +392,7 @@ export default function ProductsPage() {
       {/* Dashboard Cards */}
       <div className="p-4 rounded-xl shadow-md bg-white dark:bg-gray-800 transition-colors mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card title="Today Sales" value={`₹ ${dashboard?.today_sales || 0}`} />
           <Card title="Total Sales" value={`₹ ${dashboard?.total_sales || 0}`} />
           <Card title="Total Expenses" value={`₹ ${dashboard?.total_expenses || 0}`} />
           <Card title="Net Profit" value={`₹ ${dashboard?.net_profit || 0}`} />
@@ -768,9 +769,13 @@ export default function ProductsPage() {
 
 /* ---------------- CARD COMPONENT ---------------- */
 const Card = ({ title, value }) => (
-  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 shadow-sm transition-colors">
-    <h3 className="text-xs sm:text-sm font-medium">{title}</h3>
-    <p className="text-lg sm:text-xl font-bold mt-1">{value}</p>
+  <div className={`border rounded-lg p-4 shadow-sm transition-colors ${
+    title === "Today Sales"
+      ? "bg-green-100 dark:bg-green-900 border-green-400"
+      : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-700"
+  }`}>
+    <h3 className="text-sm font-medium">{title}</h3>
+    <p className="text-xl font-bold mt-1">{value}</p>
   </div>
 )
 
