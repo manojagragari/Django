@@ -305,6 +305,30 @@ export default function ProductsPage() {
     }
   };
 
+  const handleLogout = async () => {
+  try {
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    if (refreshToken) {
+      await fetch(`${API_BASE}/logout/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+    }
+  } catch (err) {
+    console.log("Logout API error");
+  }
+
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+
+  router.replace("/login");
+};
+
   /* ---------------- FILTERED DATA ---------------- */
   const filteredProducts = products.filter(
     (p) =>
@@ -456,6 +480,7 @@ export default function ProductsPage() {
       </div>
 
             {/* Add Expense */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <form
         onSubmit={handleExpenseSubmit}
         className="border border-gray-200 dark:border-gray-700 p-5 rounded-xl shadow-md bg-white dark:bg-gray-800 grid grid-cols-1 sm:grid-cols-2 gap-3 transition-colors mb-8"
@@ -521,6 +546,7 @@ export default function ProductsPage() {
           >
             Expenses History
           </button>
+        </div>
         </div>
       </div>
 
