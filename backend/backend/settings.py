@@ -1,4 +1,3 @@
-
 """
 Django settings for backend project.
 Production + Development ready configuration
@@ -21,10 +20,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # =========================
 # SECURITY
 # =========================
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(
+        "⚠️  CRITICAL: SECRET_KEY environment variable not set!\n"
+        "Set it before running Django:\n"
+        "  export SECRET_KEY='your-unique-secret-key'\n"
+        "  Or add to .env file: SECRET_KEY=your-unique-secret-key"
+    )
 
 # Automatically switch DEBUG based on environment variable
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # ALLOWED_HOSTS (split by comma)
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,django-394y.onrender.com').split(',')
