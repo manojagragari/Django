@@ -9,10 +9,11 @@ from shop.permissions import IsAdminUserGroup
 class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
+    permission_classes = [IsAuthenticated]  # ✅ ADDED - Only logged-in users
 
 
 # RETRIEVE + UPDATE + DELETE
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]  # ✅ ADDED - Only logged-in users
