@@ -33,7 +33,10 @@ if not SECRET_KEY:
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # ALLOWED_HOSTS (split by comma)
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,django-394y.onrender.com').split(',')
+ALLOWED_HOSTS = [host.strip() for host in os.getenv(
+    'ALLOWED_HOSTS',
+    '127.0.0.1,localhost,django-394y.onrender.com'
+).split(',') if host.strip()]
 
 
 # =========================
@@ -94,15 +97,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # =========================
 # DATABASE
 # =========================
-if os.getenv("RENDER"):  # Production (Render)
+USE_SQLITE = os.getenv("USE_SQLITE", "False") == "True"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if USE_SQLITE:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv("DATABASE_URL"),
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+elif DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
             conn_max_age=600,
-            ssl_require=True
+            ssl_require=not DEBUG,
         )
     }
-else:  # Local development (SQLite)
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -149,11 +162,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    # Production: add your frontend URL
+    # Production: set your frontend URL(s) in CORS_ALLOWED_ORIGINS / CSRF_TRUSTED_ORIGINS
     CORS_ALLOWED_ORIGINS = [
-        "https://django-394y.onrender.com",
-        "http://localhost:3000",
-        "https://django-1-ucq2.onrender.com"
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ALLOWED_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000"
+        ).split(',')
+        if origin.strip()
+    ]
+    CSRF_TRUSTED_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv(
+            "CSRF_TRUSTED_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000"
+        ).split(',')
+        if origin.strip()
     ]
 
 # =========================
