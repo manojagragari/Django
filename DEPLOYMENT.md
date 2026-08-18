@@ -35,6 +35,7 @@ filesystem is ephemeral, so a SQLite file is wiped on every deploy.
 | `ALLOWED_HOSTS` | ✅ | `your-backend.onrender.com,localhost,127.0.0.1` |
 | `CORS_ALLOWED_ORIGINS` | ✅ | **The frontend origin**, e.g. `https://your-frontend.onrender.com`. No trailing slash |
 | `CSRF_TRUSTED_ORIGINS` | ✅ | Same as above |
+| `PYTHON_VERSION` | ✅ | `3.11.9`. **Render does not read `runtime.txt`** (that is a Heroku convention). Set this env var, or rely on the `backend/.python-version` file. Without a modern Python, `pip install` fails in ~30 s because numpy needs ≥3.11 and Django needs ≥3.10 |
 | `TIME_ZONE` | — | Defaults to `Asia/Kolkata` |
 | `ACCESS_TOKEN_MINUTES` | — | Defaults to `60` |
 | `REFRESH_TOKEN_DAYS` | — | Defaults to `7` |
@@ -64,8 +65,11 @@ pip install --upgrade pip && pip install -r requirements.txt
 **Start command**
 
 ```bash
-bash start.sh
+./start.sh
 ```
+
+`bash start.sh` works too. `start.sh` is committed with mode `755` and LF line
+endings (enforced by `.gitattributes`), so both forms run correctly on Linux.
 
 `start.sh` runs, in order:
 
@@ -183,7 +187,8 @@ prefix.
 | `DisallowedHost` | Domain not in `ALLOWED_HOSTS` | Add it |
 | Frontend calls `localhost` in production | `NEXT_PUBLIC_API_URL` not set at build time | Set it and **rebuild** |
 | `500` on `collectstatic` | Stale build cache | Clear build cache and redeploy |
-| Statistical charts show an error tile | Plotting libraries not installed | Confirm the build ran `requirements.txt` |
+| Build fails after ~30 s with "Could not find a version that satisfies numpy/Django" | Render is using an old Python; `runtime.txt` is ignored | Set `PYTHON_VERSION=3.11.9` in the backend environment, then redeploy |
+| Statistical charts show "not enabled here" | Plotting libraries not installed | Confirm the build ran `requirements.txt`. Every other feature keeps working; the endpoints return 503, not 500 |
 | Signup rejects every role | Groups missing | `python manage.py ensure_roles` |
 | First request after idle takes ~50 s | Render free-tier cold start | Expected; upgrade the plan to remove |
 

@@ -790,6 +790,7 @@ dashboard, pointed at this repository.
 | `ALLOWED_HOSTS` | `your-backend.onrender.com,localhost,127.0.0.1` |
 | `CORS_ALLOWED_ORIGINS` | **The frontend origin.** Wrong value here blocks every API call |
 | `CSRF_TRUSTED_ORIGINS` | Same as above |
+| `PYTHON_VERSION` | `3.11.9` — **required**. Render ignores `runtime.txt` |
 | `DJANGO_SUPERUSER_PASSWORD` | Optional — `start.sh` creates the first admin only if set |
 
 Render's `RENDER_EXTERNAL_HOSTNAME` is trusted automatically, so renaming the
@@ -837,7 +838,8 @@ would abort mid-deploy.
 | Every API call fails in the browser, works in curl | Frontend origin missing from `CORS_ALLOWED_ORIGINS` | Add it and redeploy the backend |
 | Infinite redirect loop | `SECURE_SSL_REDIRECT` without the proxy header | Already fixed; confirm `DEBUG=False` and redeploy |
 | `DisallowedHost` | Domain not in `ALLOWED_HOSTS` | Add it, or rely on `RENDER_EXTERNAL_HOSTNAME` |
-| Charts show "Could not render this chart" | Plotting libraries missing | Confirm the build installed `requirements.txt` |
+| Build fails in ~30 s on a version conflict | Render used an old Python; `runtime.txt` is a Heroku file and is ignored | Set `PYTHON_VERSION=3.11.9`; `backend/.python-version` is also committed |
+| Charts show "not enabled here" | Plotting libraries missing | Endpoints return 503 and the rest of the app is unaffected; install matplotlib/seaborn/pandas to enable |
 | `406 Not Acceptable` on a chart URL | Backend predates the `PNGRenderer` fix | Redeploy the backend |
 | Frontend calls `localhost` in production | `NEXT_PUBLIC_API_URL` not set at **build** time | Set it, then rebuild |
 | Signup rejects every role | `Admin`/`Staff` groups missing | `python manage.py ensure_roles` |

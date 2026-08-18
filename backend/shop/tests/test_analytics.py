@@ -181,11 +181,30 @@ class DataScienceChartTests(APITestCase):
             )
             Expense.objects.create(title=f"Cost {index}", amount=50 + index * 10)
 
-    def test_catalogue_lists_every_chart(self):
+    def test_catalogue_lists_every_chart_and_reports_availability(self):
         response = self.client.get(reverse("ds-catalogue"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 5)
-        self.assertTrue(all("library" in row for row in response.data))
+        self.assertEqual(len(response.data["results"]), 5)
+        self.assertTrue(all("library" in row for row in response.data["results"]))
+        # matplotlib/pandas/seaborn are installed in the test environment.
+        self.assertTrue(response.data["available"])
+
+    def test_charts_return_503_when_the_plotting_stack_is_missing(self):
+        """A host that cannot install matplotlib must not 500 the endpoint."""
+        from shop.views import data_science_analytics as ds
+
+        original = ds._load_plotting_stack
+
+        def unavailable(_theme):
+            raise ds.ChartsUnavailable("No module named 'matplotlib'")
+
+        ds._load_plotting_stack = unavailable
+        try:
+            response = self.client.get(reverse("ds-sales-trend"))
+            self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+            self.assertIn("unavailable", response.data["detail"].lower())
+        finally:
+            ds._load_plotting_stack = original
 
     def test_charts_render_png_with_data(self):
         self.seed_sales()

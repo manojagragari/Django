@@ -44,6 +44,9 @@ export default function AnalyticsPage() {
 
   const [data, setData] = useState(null);
   const [charts, setCharts] = useState([]);
+  // The backend reports whether matplotlib/seaborn/pandas are installed, so a
+  // host that could not install them shows an explanation, not broken tiles.
+  const [chartsAvailable, setChartsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -98,7 +101,10 @@ export default function AnalyticsPage() {
         expensesByCategory,
         profitTrend,
       });
-      setCharts(chartCatalogue);
+      // Tolerate both shapes: {available, results} and a bare array from an
+      // older backend build.
+      setCharts(chartCatalogue?.results ?? chartCatalogue ?? []);
+      setChartsAvailable(chartCatalogue?.available !== false);
     } catch (caught) {
       setError(caught.message || "Could not load analytics.");
     } finally {
@@ -375,12 +381,20 @@ export default function AnalyticsPage() {
       {/* =============== STATISTICAL =============== */}
       {tab === "statistical" && (
         <>
-          <Alert tone="info" title="Rendered on the server">
-            These images are computed in Python with pandas, Matplotlib and Seaborn, then
-            streamed back as PNG. They follow the app theme and can be downloaded for reports.
-          </Alert>
+          {chartsAvailable ? (
+            <Alert tone="info" title="Rendered on the server">
+              These images are computed in Python with pandas, Matplotlib and Seaborn, then
+              streamed back as PNG. They follow the app theme and can be downloaded for reports.
+            </Alert>
+          ) : (
+            <Alert tone="warning" title="Statistical charts are not enabled here">
+              This deployment does not have the Python plotting libraries installed
+              (matplotlib, seaborn, pandas). Every other feature works normally — install
+              those packages on the backend to switch these charts on.
+            </Alert>
+          )}
 
-          <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <div className={cx("mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2", !chartsAvailable && "hidden")}>
             {charts.length === 0 && loading
               ? Array.from({ length: 4 }).map((_, index) => (
                   <Card key={index}>

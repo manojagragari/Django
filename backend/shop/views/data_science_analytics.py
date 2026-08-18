@@ -10,6 +10,7 @@ plotting libraries out of every worker that never serves a chart.
 """
 
 from datetime import timedelta
+from functools import wraps
 from io import BytesIO
 
 from django.http import HttpResponse
@@ -43,6 +44,53 @@ class PNGRenderer(BaseRenderer):
 CHART_RENDERERS = [PNGRenderer, JSONRenderer, BrowsableAPIRenderer]
 
 
+class ChartsUnavailable(Exception):
+    """The plotting stack is not installed on this deployment."""
+
+
+def chart_endpoint(view):
+    """Turn a missing plotting stack into a clean 503 instead of a 500.
+
+    matplotlib/seaborn/pandas are heavy. If a constrained host cannot install
+    them, every other feature must still work and the chart endpoints should say
+    so plainly rather than crashing the request.
+    """
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        try:
+            return view(request, *args, **kwargs)
+        except ChartsUnavailable as exc:
+            response = Response(
+                {
+                    "detail": (
+                        "Server-rendered charts are unavailable on this deployment. "
+                        "Install matplotlib, seaborn and pandas to enable them."
+                    ),
+                    "errors": {"dependency": str(exc)},
+                },
+                status=503,
+            )
+            # Content negotiation already chose the PNG renderer for an
+            # `Accept: image/png` request; force JSON so this body renders.
+            response.accepted_renderer = JSONRenderer()
+            response.accepted_media_type = "application/json"
+            response.renderer_context = {"request": request, "view": None, "args": (), "kwargs": {}}
+            return response
+
+    return wrapper
+
+
+def plotting_available():
+    try:
+        import matplotlib  # noqa: F401
+        import pandas  # noqa: F401
+        import seaborn  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
 # Palette kept in sync with the frontend design tokens.
 THEMES = {
     "dark": {
@@ -70,12 +118,15 @@ THEMES = {
 
 def _load_plotting_stack(theme_name):
     """Import the plotting stack on demand and apply the requested theme."""
-    import matplotlib
+    try:
+        import matplotlib
 
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    import seaborn as sns
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        import seaborn as sns
+    except ImportError as exc:
+        raise ChartsUnavailable(str(exc)) from exc
 
     theme = THEMES.get(theme_name, THEMES["dark"])
 
@@ -136,6 +187,7 @@ def _theme_name(request):
 # =====================================================================
 @api_view(["GET"])
 @renderer_classes(CHART_RENDERERS)
+@chart_endpoint
 def sales_trend_chart(request):
     plt, pd, sns, theme = _load_plotting_stack(_theme_name(request))
 
@@ -179,6 +231,7 @@ def sales_trend_chart(request):
 # =====================================================================
 @api_view(["GET"])
 @renderer_classes(CHART_RENDERERS)
+@chart_endpoint
 def sales_distribution_chart(request):
     plt, pd, sns, theme = _load_plotting_stack(_theme_name(request))
 
@@ -216,6 +269,7 @@ def sales_distribution_chart(request):
 # =====================================================================
 @api_view(["GET"])
 @renderer_classes(CHART_RENDERERS)
+@chart_endpoint
 def correlation_chart(request):
     plt, pd, sns, theme = _load_plotting_stack(_theme_name(request))
 
@@ -264,6 +318,7 @@ def correlation_chart(request):
 # =====================================================================
 @api_view(["GET"])
 @renderer_classes(CHART_RENDERERS)
+@chart_endpoint
 def revenue_forecast_chart(request):
     plt, pd, sns, theme = _load_plotting_stack(_theme_name(request))
     import numpy as np
@@ -327,6 +382,7 @@ def revenue_forecast_chart(request):
 # =====================================================================
 @api_view(["GET"])
 @renderer_classes(CHART_RENDERERS)
+@chart_endpoint
 def revenue_vs_expense_chart(request):
     plt, pd, sns, theme = _load_plotting_stack(_theme_name(request))
 
@@ -385,38 +441,46 @@ def revenue_vs_expense_chart(request):
 # =====================================================================
 @api_view(["GET"])
 def chart_catalogue(request):
-    """Lets the frontend render the gallery without hardcoding chart slugs."""
+    """Lets the frontend render the gallery without hardcoding chart slugs.
+
+    `available` tells the client whether the plotting stack is installed, so it
+    can show an explanation instead of five broken image tiles.
+    """
+    available = plotting_available()
     return Response(
-        [
-            {
-                "slug": "sales-trend",
-                "title": "Sales Trend & Moving Average",
-                "description": "Daily revenue for the last 30 days with a 7-day rolling mean.",
-                "library": "Matplotlib + Seaborn + pandas",
-            },
-            {
-                "slug": "sales-distribution",
-                "title": "Order Value Distribution",
-                "description": "Histogram and box plot showing how order values spread around the mean.",
-                "library": "Seaborn histplot + boxplot",
-            },
-            {
-                "slug": "correlation",
-                "title": "Correlation Matrix",
-                "description": "Pearson correlation between quantity, pricing, discount and order value.",
-                "library": "Seaborn heatmap",
-            },
-            {
-                "slug": "forecast",
-                "title": "Revenue Forecast",
-                "description": "Least-squares trend line projected three periods ahead.",
-                "library": "NumPy polyfit + Matplotlib",
-            },
-            {
-                "slug": "revenue-vs-expense",
-                "title": "Revenue vs Expenses",
-                "description": "Monthly revenue and expenses with the net profit line on top.",
-                "library": "Seaborn barplot + Matplotlib",
-            },
-        ]
+        {
+            "available": available,
+            "results": [
+                {
+                    "slug": "sales-trend",
+                    "title": "Sales Trend & Moving Average",
+                    "description": "Daily revenue for the last 30 days with a 7-day rolling mean.",
+                    "library": "Matplotlib + Seaborn + pandas",
+                },
+                {
+                    "slug": "sales-distribution",
+                    "title": "Order Value Distribution",
+                    "description": "Histogram and box plot showing how order values spread around the mean.",
+                    "library": "Seaborn histplot + boxplot",
+                },
+                {
+                    "slug": "correlation",
+                    "title": "Correlation Matrix",
+                    "description": "Pearson correlation between quantity, pricing, discount and order value.",
+                    "library": "Seaborn heatmap",
+                },
+                {
+                    "slug": "forecast",
+                    "title": "Revenue Forecast",
+                    "description": "Least-squares trend line projected three periods ahead.",
+                    "library": "NumPy polyfit + Matplotlib",
+                },
+                {
+                    "slug": "revenue-vs-expense",
+                    "title": "Revenue vs Expenses",
+                    "description": "Monthly revenue and expenses with the net profit line on top.",
+                    "library": "Seaborn barplot + Matplotlib",
+                },
+            ],
+        }
     )
