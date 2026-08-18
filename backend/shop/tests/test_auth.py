@@ -87,6 +87,45 @@ class AuthFlowTests(APITestCase):
         self.assertEqual(replay.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+class LegacyLowercaseRoleTests(APITestCase):
+    """Databases created before the roles were seeded hold lowercase groups.
+
+    The production database has an "admin" group. An exact-match lookup for
+    "Admin" silently downgraded those users to Staff, so they could sign in but
+    not delete anything.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="manish", password="Str0ng-Pass!23")
+        self.user.groups.add(Group.objects.create(name="admin"))
+
+    def test_lowercase_admin_group_is_recognised(self):
+        response = self.client.post(
+            reverse("auth-login"),
+            {"username": "manish", "password": "Str0ng-Pass!23"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["user"]["is_admin"])
+        self.assertEqual(response.data["user"]["role"], "Admin")
+
+    def test_lowercase_admin_can_delete(self):
+        from shop.models import Category
+
+        category = Category.objects.create(name="Disposable")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(reverse("category-detail", args=[category.id]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_superuser_without_any_group_is_admin(self):
+        """The production `admin` account is a superuser with no groups."""
+        root = User.objects.create_superuser(username="root", password="Str0ng-Pass!23")
+        self.client.force_authenticate(user=root)
+        response = self.client.get(reverse("auth-me"))
+        self.assertTrue(response.data["is_admin"])
+        self.assertEqual(response.data["role"], "Admin")
+
+
 class RegistrationTests(APITestCase):
     def setUp(self):
         Group.objects.get_or_create(name="Staff")

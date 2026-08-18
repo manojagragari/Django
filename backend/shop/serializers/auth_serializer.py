@@ -24,12 +24,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_role(self, user):
         roles = self.get_roles(user)
-        if user.is_superuser and "Admin" not in roles:
+        if self.get_is_admin(user):
             return "Admin"
-        return roles[0] if roles else "Staff"
+        # Title-case so a legacy lowercase group still reads properly in the UI.
+        return roles[0].title() if roles else "Staff"
 
     def get_is_admin(self, user):
-        return user.is_superuser or user.groups.filter(name="Admin").exists()
+        # Case-insensitive: legacy databases hold lowercase group names.
+        return user.is_superuser or user.groups.filter(name__iexact="Admin").exists()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -82,7 +84,9 @@ class LoginSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         token["username"] = user.username
-        token["is_admin"] = user.is_superuser or user.groups.filter(name="Admin").exists()
+        token["is_admin"] = (
+            user.is_superuser or user.groups.filter(name__iexact="Admin").exists()
+        )
         return token
 
     def validate(self, attrs):

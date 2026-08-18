@@ -2,10 +2,16 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 def is_admin(user):
+    """True for superusers and members of the Admin group.
+
+    The lookup is case-insensitive on purpose: databases created before the
+    roles were seeded contain lowercase groups ("admin", "staff"), and an exact
+    match would silently downgrade those existing users to Staff.
+    """
     return bool(
         user
         and user.is_authenticated
-        and (user.is_superuser or user.groups.filter(name="Admin").exists())
+        and (user.is_superuser or user.groups.filter(name__iexact="Admin").exists())
     )
 
 
