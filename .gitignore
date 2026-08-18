@@ -52,3 +52,22 @@ dist/
 # ==============================
 .DS_Store
 Thumbs.db
+
+# ==============================
+# Build artefacts (regenerated on deploy)
+# ==============================
+staticfiles/
+.mplcache/
+
+# ==============================
+# Test / tooling caches
+# ==============================
+.pytest_cache/
+.ruff_cache/
+.eslintcache
+
+# ==============================
+# Local backups
+# ==============================
+*.bak
+db.sqlite3.bak

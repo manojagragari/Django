@@ -1,20 +1,42 @@
 import "./globals.css";
 
+import { AuthProvider } from "@/lib/auth";
+import { ThemeProvider, themeBootstrapScript } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/ui/Toast";
+
 export const metadata = {
-  title: "ElectroShop Management",
-  description: "Shop Management System",
+  title: {
+    default: "ElectroShop Management System",
+    template: "%s · ElectroShop",
+  },
+  description:
+    "Inventory, billing, expenditure and sales analytics for an electronics retail shop. " +
+    "Django REST Framework API with a Next.js front end.",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#070b14" },
+  ],
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Applies the saved theme before first paint to avoid a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
       </head>
-      <body className="bg-white text-black dark:bg-gray-900 dark:text-white transition-colors duration-300">
-        {children}
+      <body>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-

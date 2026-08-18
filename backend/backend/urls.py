@@ -1,26 +1,19 @@
-"""
-URL configuration for backend project.
+"""Root URL configuration.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Everything the frontend talks to lives under /api/. The shop app groups those
+routes by business domain; see shop/urls/__init__.py.
 """
+
 from django.contrib import admin
-from django.urls import path, include
+from django.shortcuts import redirect
+from django.urls import include, path
 
-
+from shop.views.home_views import health_check
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('shop.urls')),
-    path('', include('shop.urls')),  # Make sure you have a root path
+    path("admin/", admin.site.urls),
+    path("api/", include("shop.urls")),
+    path("health/", health_check, name="health"),
+    # The backend serves no UI of its own; point visitors at the API index.
+    path("", lambda request: redirect("/api/", permanent=False)),
 ]

@@ -1,49 +1,93 @@
 from rest_framework import serializers
-from django.db import transaction
-from ..models import Sale
-from shop.models import Product
+
+from ..models import Product, Sale
 
 
 class SaleSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    category_name = serializers.CharField(source="product.category.name", read_only=True)
+    payment_method_display = serializers.CharField(
+        source="get_payment_method_display", read_only=True
+    )
+    subtotal = serializers.FloatField(read_only=True)
+    tax_amount = serializers.FloatField(read_only=True)
+
     class Meta:
         model = Sale
-        fields = "__all__"
+        fields = [
+            "id",
+            "invoice_number",
+            "product",
+            "product_name",
+            "category_name",
+            "quantity",
+            "unit_price",
+            "discount",
+            "tax_percent",
+            "subtotal",
+            "tax_amount",
+            "total_amount",
+            "payment_method",
+            "payment_method_display",
+            "customer_name",
+            "sale_date",
+        ]
+        # Stock arithmetic and invoice numbering belong to Sale.save(); the
+        # client never supplies these.
+        read_only_fields = ["invoice_number", "unit_price", "total_amount"]
 
-    def validate(self, data):
-        quantity = data.get("quantity")
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Quantity must be at least 1.")
+        return value
 
-        if quantity is None:
-            raise serializers.ValidationError("Quantity is required")
+    def validate(self, attrs):
+        product = attrs.get("product") or getattr(self.instance, "product", None)
+        quantity = attrs.get("quantity", getattr(self.instance, "quantity", 0))
 
-        if quantity <= 0:
-            raise serializers.ValidationError("Quantity must be positive")
+        if product is None:
+            raise serializers.ValidationError({"product": "Select a product."})
 
-        return data
+        # Friendly pre-check. Sale.save() re-checks under a row lock, which is
+        # what actually guarantees correctness under concurrent checkouts.
+        available = product.stock
+        if self.instance and self.instance.product_id == product.pk:
+            available += self.instance.quantity
 
-    def create(self, validated_data):
-        with transaction.atomic():  # ✅ REQUIRED for select_for_update
-
-            product = validated_data["product"]
-            quantity = validated_data["quantity"]
-
-            # Lock row properly (PostgreSQL safe)
-            product = (
-                Product.objects
-                .select_for_update()
-                .get(id=product.id)
+        if quantity > available:
+            raise serializers.ValidationError(
+                {"quantity": f"Only {available} unit(s) of {product.name} in stock."}
             )
+        return attrs
 
-            # Check stock safely inside transaction
-            if product.stock < quantity:
-                raise serializers.ValidationError(
-                    f"Not enough stock. Available: {product.stock}"
-                )
 
-            # Reduce stock
-            product.stock -= quantity
-            product.save()
+class SaleInvoiceSerializer(serializers.ModelSerializer):
+    """Everything a printable invoice needs, in one response."""
 
-            # Create sale
-            sale = Sale.objects.create(**validated_data)
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    category_name = serializers.CharField(source="product.category.name", read_only=True)
+    payment_method_display = serializers.CharField(
+        source="get_payment_method_display", read_only=True
+    )
+    subtotal = serializers.FloatField(read_only=True)
+    tax_amount = serializers.FloatField(read_only=True)
 
-            return sale
+    class Meta:
+        model = Sale
+        fields = [
+            "id",
+            "invoice_number",
+            "product_name",
+            "category_name",
+            "quantity",
+            "unit_price",
+            "subtotal",
+            "discount",
+            "tax_percent",
+            "tax_amount",
+            "total_amount",
+            "payment_method",
+            "payment_method_display",
+            "customer_name",
+            "sale_date",
+        ]

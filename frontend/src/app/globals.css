@@ -1,23 +1,264 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* =====================================================================
+   VOLTLINE — the ElectroShop design system
+   =====================================================================
+   One set of semantic tokens, two palettes. Components never hardcode a
+   colour; they reference a role (surface, muted, accent) so light and dark
+   stay in sync automatically.
+
+   Dark mode is driven by a `.dark` class on <html>, set by ThemeProvider
+   before paint so there is no flash of the wrong theme.
+   ===================================================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-app: var(--vl-app);
+  --color-surface: var(--vl-surface);
+  --color-raised: var(--vl-raised);
+  --color-overlay: var(--vl-overlay);
+
+  --color-line: var(--vl-line);
+  --color-line-strong: var(--vl-line-strong);
+
+  --color-ink: var(--vl-ink);
+  --color-muted: var(--vl-muted);
+  --color-faint: var(--vl-faint);
+
+  --color-accent: var(--vl-accent);
+  --color-accent-soft: var(--vl-accent-soft);
+  --color-accent-ink: var(--vl-accent-ink);
+
+  --color-violet: var(--vl-violet);
+  --color-positive: var(--vl-positive);
+  --color-negative: var(--vl-negative);
+  --color-warning: var(--vl-warning);
+  --color-info: var(--vl-info);
+
+  --font-sans: var(--vl-font-sans);
+  --font-mono: var(--vl-font-mono);
+
+  --radius-card: 14px;
+  --radius-control: 10px;
 }
 
+/* ---------------------------------------------------------------
+   LIGHT PALETTE (default)
+   --------------------------------------------------------------- */
+:root {
+  --vl-app: #f4f6fb;
+  --vl-surface: #ffffff;
+  --vl-raised: #ffffff;
+  --vl-overlay: rgba(15, 23, 42, 0.45);
 
+  --vl-line: #e3e8f0;
+  --vl-line-strong: #cbd5e1;
+
+  --vl-ink: #0d1626;
+  --vl-muted: #56657d;
+  --vl-faint: #8593a8;
+
+  --vl-accent: #0e7490;
+  --vl-accent-soft: #e0f2fe;
+  --vl-accent-ink: #ffffff;
+
+  --vl-violet: #6d28d9;
+  --vl-positive: #067a54;
+  --vl-negative: #c2255c;
+  --vl-warning: #b45309;
+  --vl-info: #1d4ed8;
+
+  --vl-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --vl-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.12);
+  --vl-shadow-lg: 0 18px 48px -12px rgba(15, 23, 42, 0.24);
+
+  --vl-grid: rgba(15, 23, 42, 0.06);
+
+  --vl-font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --vl-font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------
+   DARK PALETTE
+   --------------------------------------------------------------- */
+.dark {
+  --vl-app: #070b14;
+  --vl-surface: #0d1526;
+  --vl-raised: #131d33;
+  --vl-overlay: rgba(2, 6, 16, 0.7);
+
+  --vl-line: #1e293b;
+  --vl-line-strong: #334155;
+
+  --vl-ink: #e8edf6;
+  --vl-muted: #93a2ba;
+  --vl-faint: #64748b;
+
+  --vl-accent: #22d3ee;
+  --vl-accent-soft: rgba(34, 211, 238, 0.14);
+  --vl-accent-ink: #04212b;
+
+  --vl-violet: #a78bfa;
+  --vl-positive: #34d399;
+  --vl-negative: #fb7185;
+  --vl-warning: #fbbf24;
+  --vl-info: #60a5fa;
+
+  --vl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --vl-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --vl-shadow-lg: 0 24px 64px -16px rgba(0, 0, 0, 0.75);
+
+  --vl-grid: rgba(148, 163, 184, 0.09);
+
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------
+   BASE
+   --------------------------------------------------------------- */
+* {
+  border-color: var(--vl-line);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--vl-app);
+  color: var(--vl-ink);
+  font-family: var(--vl-font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
 }
 
+/* A faint grid, so large empty dashboards do not read as broken. */
+.vl-grid-bg {
+  background-image:
+    linear-gradient(to right, var(--vl-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--vl-grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
 
+::selection {
+  background: var(--vl-accent);
+  color: var(--vl-accent-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--vl-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Scrollbars that match the theme instead of punching a light hole in it. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vl-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--vl-line-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* Number inputs: hide the spinners, they misalign the field padding. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ---------------------------------------------------------------
+   ELEVATION + BRAND EFFECTS
+   --------------------------------------------------------------- */
+.vl-shadow-sm { box-shadow: var(--vl-shadow-sm); }
+.vl-shadow    { box-shadow: var(--vl-shadow); }
+.vl-shadow-lg { box-shadow: var(--vl-shadow-lg); }
+
+/* The "voltline": a hairline current running along the top of a surface. */
+.vl-current::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--vl-accent) 30%,
+    var(--vl-violet) 70%,
+    transparent
+  );
+  opacity: 0.8;
+}
+
+.vl-brand-text {
+  background: linear-gradient(100deg, var(--vl-accent), var(--vl-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------------------------------------------------------------
+   ANIMATION
+   --------------------------------------------------------------- */
+@keyframes vl-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.vl-rise { animation: vl-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes vl-shimmer {
+  100% { transform: translateX(100%); }
+}
+.vl-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--vl-line);
+}
+.vl-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--vl-line-strong), transparent);
+  animation: vl-shimmer 1.5s infinite;
+}
+
+@keyframes vl-spin { to { transform: rotate(360deg); } }
+.vl-spin { animation: vl-spin 0.7s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vl-rise, .vl-skeleton::after, .vl-spin {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------
+   PRINT — used by the invoice view
+   --------------------------------------------------------------- */
+@media print {
+  body { background: #fff; color: #000; }
+  .vl-no-print { display: none !important; }
+  .vl-print-area {
+    position: static;
+    box-shadow: none;
+    border: none;
+  }
+}

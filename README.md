@@ -1,320 +1,133 @@
 # ElectroShop Management System
 
-A comprehensive Django-based e-commerce and shop management system with inventory tracking, sales management, expense tracking, and real-time analytics dashboard.
+A production-ready full-stack shop management system for an electronics retail
+business. **Django REST Framework** serves the API; **Next.js** renders the
+interface.
+
+> 📘 **[PROJECT_WORKFLOW.md](PROJECT_WORKFLOW.md)** is the complete technical
+> reference — architecture, request lifecycle, data model, API reference,
+> feature workflows, design system, and deployment. Start there.
+
+---
 
 ## Features
 
-- **Product Management**: Create, edit, and manage products with category organization
-- **Sales Tracking**: Record sales transactions with automatic invoice generation and stock management
-- **Expense Management**: Track operational expenses by category for financial analysis
-- **Inventory Control**: Monitor product stock levels with low-stock alerts and automatic adjustments
-- **Dashboard Analytics**: Real-time charts and statistics for sales trends, expense breakdowns, and inventory status
-- **User Authentication**: JWT-based secure authentication with group-based access control
-- **RESTful API**: Complete REST API for all business operations
-- **Frontend Interface**: Modern Next.js frontend with Tailwind CSS styling
-- **Role-Based Access**: Admin and staff role management for permissions
+| Area | What it does |
+| --- | --- |
+| **Inventory** | Products under categories, cost/selling price, live stock, profit per unit, margin, low-stock alerts |
+| **Sales & billing** | Record a sale, apply tax and discount, auto-generated invoice number, printable invoice, filterable history |
+| **Expenses** | Rent, salary, bills and other costs, backdatable, grouped by category |
+| **Analytics** | Interactive Recharts dashboards **and** server-rendered Matplotlib/Seaborn statistical charts |
+| **Auth** | JWT with refresh-token rotation, server-side logout, `Admin` / `Staff` roles |
 
-## Project Structure
+---
 
-```
-ElectroShop/
-├── backend/
-│   ├── manage.py                      # Django management script
-│   ├── requirements.txt               # Project dependencies
-│   ├── runtime.txt                    # Python version
-│   ├── start.sh                       # Production startup script
-│   ├── db.sqlite3                     # SQLite database
-│   ├── ElectroShop_lld.puml           # PlantUML diagrams
-│   ├── backend/
-│   │   ├── settings.py                # Django configuration
-│   │   ├── urls.py                    # Main URL routing
-│   │   ├── asgi.py                    # ASGI configuration
-│   │   └── wsgi.py                    # WSGI configuration
-│   ├── shop/
-│   │   ├── models/
-│   │   │   ├── products.py            # Product model
-│   │   │   ├── category.py            # Category model
-│   │   │   ├── sale.py                # Sale model
-│   │   │   └── expense.py             # Expense model
-│   │   ├── views/
-│   │   │   ├── products_views.py      # Product API views
-│   │   │   ├── sales_views.py         # Sales API views
-│   │   │   ├── expense_views.py       # Expense API views
-│   │   │   ├── category_views.py      # Category API views
-│   │   │   ├── auth_views.py          # Authentication views
-│   │   │   ├── dashboard_views.py     # Dashboard views
-│   │   │   ├── data_science_analytics.py  # Analytics views
-│   │   │   └── expense_analytics.py   # Expense analytics
-│   │   ├── serializers/
-│   │   │   ├── products_serializer.py
-│   │   │   ├── sales_serializer.py
-│   │   │   ├── expense_serializer.py
-│   │   │   ├── category_serializer.py
-│   │   │   └── auth_serializer.py
-│   │   ├── permissions.py             # Custom permissions
-│   │   ├── urls.py                    # Shop URL routing
-│   │   ├── admin.py                   # Django admin config
-│   │   └── migrations/                # Database migrations
-│   └── staticfiles/
-└── frontend/
-    ├── src/
-    │   ├── app/
-    │   ├── components/
-    │   └── lib/
-    ├── public/
-    ├── package.json
-    └── next.config.mjs
-```
+## Tech stack
 
-## Technologies Used
+**Backend** — Python 3.11 · Django 5.2 · Django REST Framework · SimpleJWT ·
+PostgreSQL (SQLite in dev) · Gunicorn · WhiteNoise · pandas · Matplotlib ·
+Seaborn · NumPy
 
-- **Backend**: Django 4.x+, Django REST Framework
-- **Database**: SQLite (development) / PostgreSQL (production)
-- **Frontend**: Next.js, Tailwind CSS
-- **Authentication**: JWT (djangorestframework-simplejwt)
-- **Environment**: Python 3.8+, python-dotenv
-- **Static Files**: WhiteNoise for production
-- **CORS**: django-cors-headers
+**Frontend** — Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · Recharts
 
-## Installation
+Full breakdown of what each library is used for is in
+[PROJECT_WORKFLOW.md § 3](PROJECT_WORKFLOW.md#3-tech-stack-and-what-each-piece-is-actually-used-for).
 
-### Prerequisites
+---
 
-- Python 3.8 or higher
-- Node.js 16 or higher
-- pip and npm
+## Quick start
 
-### Backend Setup
-
-1. Navigate to backend:
-   ```bash
-   cd ElectroShop/backend
-   ```
-
-2. Create virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Create `.env` file:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-5. Run migrations:
-   ```bash
-   python manage.py migrate
-   ```
-
-6. Create superuser:
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-7. Start development server:
-   ```bash
-   python manage.py runserver
-   ```
-
-### Frontend Setup
-
-1. Navigate to frontend:
-   ```bash
-   cd ElectroShop/frontend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Create `.env.local` with API URL:
-   ```
-   NEXT_PUBLIC_API_URL=http://localhost:8000/api
-   ```
-
-4. Start development server:
-   ```bash
-   npm run dev
-   ```
-
-5. Access at [http://localhost:3000](http://localhost:3000)
-
-## Usage
-
-### Main URLs
-
-- **Backend API**: `http://localhost:8000/api/`
-- **Django Admin**: `http://localhost:8000/admin/`
-- **Frontend App**: `http://localhost:3000/`
-
-### Key Endpoints
-
-**Products**:
-- `GET /api/products/` - List all products
-- `POST /api/products/` - Create product
-- `GET /api/products/<id>/` - Get product details
-- `PUT /api/products/<id>/` - Update product
-- `DELETE /api/products/<id>/` - Delete product
-
-**Sales**:
-- `GET /api/sales/` - List all sales
-- `POST /api/sales/` - Create sale
-- `GET /api/sales/<id>/` - Get sale details
-- `DELETE /api/sales/<id>/` - Delete sale (restore stock)
-
-**Expenses**:
-- `GET /api/expenses/` - List expenses
-- `POST /api/expenses/` - Create expense
-- `PUT /api/expenses/<id>/` - Update expense
-- `DELETE /api/expenses/<id>/` - Delete expense
-
-**Categories**:
-- `GET /api/categories/` - List categories
-- `POST /api/categories/` - Create category
-
-**Analytics**:
-- `GET /api/analytics/summary/` - Dashboard summary
-- `GET /api/analytics/daily-sales/` - Daily sales chart
-- `GET /api/analytics/weekly-sales/` - Weekly sales chart
-- `GET /api/analytics/monthly-sales/` - Monthly sales chart
-- `GET /api/analytics/payment-breakdown/` - Payment method breakdown
-- `GET /api/analytics/top-products/` - Top selling products
-- `GET /api/analytics/expenses/` - Daily expense analytics
-- `GET /api/weeklyExpenceAnalysis/` - Weekly expense analysis
-
-**Authentication**:
-- `POST /api/register/` - User registration
-- `POST /api/login/` - User login (JWT)
-- `POST /api/refresh/` - Refresh JWT token
-- `GET /api/groups/` - List user groups
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the backend directory:
-
-```env
-# Django Settings
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Database
-DATABASE_URL=sqlite:///db.sqlite3
-# For PostgreSQL: postgres://user:password@localhost:5432/electroshop
-
-# CORS
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8000
-
-# Email (Optional)
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-```
-
-## Documentation
-
-- **High-Level Design**: See [HLD.md](HLD.md)
-- **Low-Level Design**: See [LLD.md](LLD.md)
-- **Data Flow Diagrams**: See [LLD_DIA.md](LLD_DIA.md)
-- **UML Diagrams**: See [LLD_UML.md](LLD_UML.md)
-- **Project Report**: See [PROJECT_REPORT.md](PROJECT_REPORT.md)
-- **User Manual**: See [USER_MANUAL.md](USER_MANUAL.md)
-- **Test Documentation**: See [tests.md](tests.md)
-
-## Development
-
-### Running Tests
+### Backend
 
 ```bash
-cd ElectroShop/backend
-python manage.py test shop
-```
-
-### Database Migrations
-
-```bash
-python manage.py makemigrations
+cd backend
+python -m venv .venv
+.venv/Scripts/activate          # macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env            # set SECRET_KEY, keep USE_SQLITE=True
 python manage.py migrate
-```
-
-### Create Admin User
-
-```bash
 python manage.py createsuperuser
+python manage.py runserver 8000
 ```
 
-### Collect Static Files
+Fill the shop with realistic demo data so the charts have something to show:
 
 ```bash
-python manage.py collectstatic
+python manage.py seed_demo_data --days 60 --sales 160 --fresh
 ```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+echo "NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api" > .env.local
+npm run dev
+```
+
+Open <http://localhost:3000>.
+
+---
+
+## API at a glance
+
+Routes are grouped by business domain. Base URL `/api`.
+
+| Group | Prefix | Purpose |
+| --- | --- | --- |
+| Auth | `/api/auth/` | register · login · refresh · logout · me · groups |
+| Catalog | `/api/catalog/` | categories · products · low-stock |
+| Sales | `/api/sales/` | list · create · edit · delete · invoice |
+| Expenses | `/api/expenses/` | list · create · edit · delete · categories |
+| Analytics | `/api/analytics/` | JSON series · summary · Matplotlib PNG charts |
+
+`GET /api/` returns a live index of every endpoint.
+The original flat paths still work as deprecated aliases.
+
+Full reference: [PROJECT_WORKFLOW.md § 7](PROJECT_WORKFLOW.md#7-api-reference).
+
+---
+
+## Testing
+
+```bash
+cd backend
+python manage.py test shop.tests --settings=backend.test_settings
+```
+
+74 tests covering authentication, stock accounting, billing maths, inventory
+rules, analytics and chart rendering.
+
+```bash
+cd frontend
+npm run build      # compiles and type-checks
+npx eslint src     # lint
+```
+
+---
 
 ## Deployment
 
-### Production Deployment
+Both services deploy from [`render.yaml`](render.yaml) — in Render, choose
+**New → Blueprint** and point it at this repository.
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+Two things cause almost every failed deploy:
 
-### Quick Start with Docker (Optional)
+1. **`CORS_ALLOWED_ORIGINS` on the backend must list the frontend origin**,
+   or the browser blocks every request.
+2. **`NEXT_PUBLIC_API_URL` is baked in at build time**, so it must be set
+   *before* the frontend builds — a restart is not enough.
 
-```bash
-docker-compose up
-```
+Details and a troubleshooting table: [PROJECT_WORKFLOW.md § 14](PROJECT_WORKFLOW.md#14-deployment).
 
-## API Documentation
+---
 
-Full interactive API documentation is available at:
-- Swagger UI: `http://localhost:8000/api/schema/swagger/`
-- ReDoc: `http://localhost:8000/api/schema/redoc/`
+## Documentation
 
-## Troubleshooting
-
-### Port Already in Use
-
-```bash
-# Kill process on port 8000
-lsof -ti:8000 | xargs kill -9
-
-# Or use different port
-python manage.py runserver 8001
-```
-
-### Database Errors
-
-```bash
-# Reset database (CAUTION: Deletes all data)
-rm db.sqlite3
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-### CORS Errors
-
-Ensure `CORS_ALLOWED_ORIGINS` includes your frontend URL in `.env`
-
-## Contributing
-
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make your changes and commit: `git commit -am 'Add feature'`
-3. Push to branch: `git push origin feature/your-feature`
-4. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License. See LICENSE file for details.
-
-## Support
-
-For issues or questions:
-- Check the documentation files
-- Review [USER_MANUAL.md](USER_MANUAL.md) for usage help
-- Check [tests.md](tests.md) for testing documentation
-- Contact the development team for additional support
+| File | Contents |
+| --- | --- |
+| [PROJECT_WORKFLOW.md](PROJECT_WORKFLOW.md) | **Main reference** — architecture, workflows, API, design system, deployment |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment steps and environment variables |
+| [SRS_ElectroShop_Management_System.md](SRS_ElectroShop_Management_System.md) | Software requirements specification |
+| [HLD.md](HLD.md) · [LLD.md](LLD.md) | High- and low-level design |
+| [USER_MANUAL.md](USER_MANUAL.md) | End-user guide |

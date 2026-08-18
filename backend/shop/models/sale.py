@@ -1,99 +1,118 @@
-from django.db import models
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
+from django.db import models, transaction
 from django.utils import timezone
+
 from .products import Product
+
+PAYMENT_METHODS = [
+    ("CASH", "Cash"),
+    ("UPI", "UPI"),
+    ("CARD", "Card"),
+]
 
 
 class Sale(models.Model):
+    """A single invoiced sale line.
 
-    invoice_number = models.CharField(
-        max_length=30,
-        blank=True,
-        null=True
-    )
+    Stock movement lives here and *only* here. Serializers, the admin and
+    management commands all go through ``save()``/``delete()``, so quantities can
+    never be double counted no matter which entry point creates the sale.
+    """
 
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    invoice_number = models.CharField(max_length=30, unique=True, blank=True, null=True)
 
-    discount = models.FloatField(default=0)
-    tax_percent = models.FloatField(default=0)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="sales")
+    quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
-    total_amount = models.FloatField(blank=True)
+    discount = models.FloatField(default=0, validators=[MinValueValidator(0)])
+    tax_percent = models.FloatField(default=0, validators=[MinValueValidator(0)])
 
-    sale_date = models.DateTimeField(auto_now_add=True)
+    unit_price = models.FloatField(default=0)
+    total_amount = models.FloatField(default=0)
 
-    payment_method = models.CharField(
-        max_length=20,
-        choices=[
-            ('CASH', 'Cash'),
-            ('UPI', 'UPI'),
-            ('CARD', 'Card'),
-        ],
-        default='CASH'
-    )
+    sale_date = models.DateTimeField(default=timezone.now)
 
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default="CASH")
     customer_name = models.CharField(max_length=100, blank=True, null=True)
 
-    # ===============================
-    # AUTO INVOICE GENERATION
-    # ===============================
-    def generate_invoice_number(self):
-        today_str = timezone.now().strftime("%Y%m%d")
+    class Meta:
+        ordering = ["-sale_date", "-id"]
 
-        last_sale = Sale.objects.filter(
-            invoice_number__startswith=f"INV-{today_str}"
-        ).order_by('-id').first()
-
-        if last_sale:
-            last_number = int(last_sale.invoice_number.split('-')[-1])
-            new_number = last_number + 1
-        else:
-            new_number = 1
-
-        return f"INV-{today_str}-{str(new_number).zfill(4)}"
-
-    # ===============================
-    # SAVE METHOD
-    # ===============================
-    def save(self, *args, **kwargs):
-
-        # Generate invoice if not exists
-        if not self.invoice_number:
-            self.invoice_number = self.generate_invoice_number()
-
-        # Restore stock if updating
-        if self.pk:
-            old_sale = Sale.objects.get(pk=self.pk)
-            old_sale.product.stock += old_sale.quantity
-            old_sale.product.save()
-
-        # Validate stock
-        if self.product.stock < self.quantity:
-            raise ValidationError("Not enough stock available")
-
-        # Reduce stock
-        self.product.stock -= self.quantity
-        self.product.save()
-
-        # Billing calculation
-        base_amount = self.product.selling_price * self.quantity
+    # ------------------------------------------------------------------
+    # Billing
+    # ------------------------------------------------------------------
+    def compute_totals(self, unit_price):
+        base_amount = unit_price * self.quantity
         tax_amount = base_amount * (self.tax_percent / 100)
         final_amount = base_amount + tax_amount - self.discount
 
         if final_amount < 0:
-            raise ValidationError("Final amount cannot be negative")
+            raise ValidationError(
+                "Discount is larger than the billed amount. Reduce the discount."
+            )
+        return round(unit_price, 2), round(final_amount, 2)
 
-        self.total_amount = round(final_amount, 2)
+    @property
+    def subtotal(self):
+        return round(self.unit_price * self.quantity, 2)
+
+    @property
+    def tax_amount(self):
+        return round(self.subtotal * (self.tax_percent / 100), 2)
+
+    # ------------------------------------------------------------------
+    # Persistence
+    # ------------------------------------------------------------------
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        # Lock the product row for the whole transaction so two concurrent
+        # checkouts cannot both read the same stock figure.
+        product = Product.objects.select_for_update().get(pk=self.product_id)
+
+        already_reserved = 0
+        if self.pk:
+            previous = Sale.objects.select_for_update().get(pk=self.pk)
+            if previous.product_id == product.pk:
+                # Editing the same product: only the difference matters.
+                already_reserved = previous.quantity
+            else:
+                # Product swapped on an edit: return the stock to the old one.
+                old_product = Product.objects.select_for_update().get(pk=previous.product_id)
+                old_product.stock += previous.quantity
+                old_product.save(update_fields=["stock"])
+
+        delta = self.quantity - already_reserved
+        if delta > product.stock:
+            available = product.stock + already_reserved
+            raise ValidationError(
+                f"Not enough stock for {product.name}. Available: {available}."
+            )
+
+        if self.unit_price in (None, 0):
+            self.unit_price = product.selling_price
+        self.unit_price, self.total_amount = self.compute_totals(self.unit_price)
+
+        product.stock -= delta
+        product.save(update_fields=["stock"])
 
         super().save(*args, **kwargs)
 
-    # ===============================
-    # RESTORE STOCK ON DELETE
-    # ===============================
+        # The primary key makes the invoice number unique without a racy
+        # "read the last row then add one" lookup.
+        if not self.invoice_number:
+            self.invoice_number = "INV-{date}-{pk:06d}".format(
+                date=timezone.localtime(self.sale_date).strftime("%Y%m%d"),
+                pk=self.pk,
+            )
+            super().save(update_fields=["invoice_number"])
+
+    @transaction.atomic
     def delete(self, *args, **kwargs):
-        self.product.stock += self.quantity
-        self.product.save()
-        super().delete(*args, **kwargs)
+        product = Product.objects.select_for_update().get(pk=self.product_id)
+        product.stock += self.quantity
+        product.save(update_fields=["stock"])
+        return super().delete(*args, **kwargs)
 
     def __str__(self):
         return f"{self.invoice_number} - {self.product.name}"
